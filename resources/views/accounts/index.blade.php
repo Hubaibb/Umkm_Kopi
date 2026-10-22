@@ -210,28 +210,60 @@
 
 {{-- Modal: Reset Password --}}
 <div id="resetPwModal" class="modal-bg">
-  <div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <h2 class="modal-title">Reset Password</h2>
-      <button class="btn secondary sm" onclick="closeModal('resetPwModal')">✕</button>
+    <div class="modal">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <h2 class="modal-title">Reset Password</h2>
+            <button
+                type="button"
+                class="btn secondary sm"
+                onclick="closeModal('resetPwModal')"
+            >✕</button>
+        </div>
+
+        <p class="sub" id="resetPwDesc" style="margin-bottom:16px">
+            Password minimal 8 karakter dan harus mengandung huruf serta angka.
+        </p>
+
+        <form method="POST" id="resetPwForm">
+            @csrf
+
+            <div class="form-group" style="margin-bottom:12px">
+                <label>Password Baru</label>
+                <input
+                    name="password"
+                    type="password"
+                    required
+                    minlength="8"
+                    autocomplete="new-password"
+                    placeholder="Minimal 8 karakter, contoh: Kopi1234"
+                >
+            </div>
+
+            <div class="form-group" style="margin-bottom:20px">
+                <label>Konfirmasi Password Baru</label>
+                <input
+                    name="password_confirmation"
+                    type="password"
+                    required
+                    minlength="8"
+                    autocomplete="new-password"
+                    placeholder="Masukkan ulang password baru"
+                >
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;gap:8px">
+                <button
+                    type="button"
+                    class="btn secondary"
+                    onclick="closeModal('resetPwModal')"
+                >Batal</button>
+
+                <button type="submit" class="btn">
+                    Reset Password
+                </button>
+            </div>
+        </form>
     </div>
-    <p class="sub" id="resetPwDesc" style="margin-bottom:16px">Atur password baru untuk akun ini.</p>
-    <form method="POST" id="resetPwForm">
-      @csrf
-      <div class="form-group" style="margin-bottom:12px">
-        <label>Password Baru</label>
-        <input name="password" type="password" required placeholder="Min. 8 karakter">
-      </div>
-      <div class="form-group" style="margin-bottom:20px">
-        <label>Konfirmasi Password Baru</label>
-        <input name="password_confirmation" type="password" required>
-      </div>
-      <div style="display:flex;justify-content:flex-end;gap:8px">
-        <button type="button" class="btn secondary" onclick="closeModal('resetPwModal')">Batal</button>
-        <button type="submit" class="btn">Reset Password</button>
-      </div>
-    </form>
-  </div>
 </div>
 @endpermission
 
