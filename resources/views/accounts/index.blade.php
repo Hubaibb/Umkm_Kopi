@@ -15,9 +15,14 @@
         <select name="role" onchange="this.form.submit()" style="width:auto">
           <option value="">Semua role</option>
           @foreach($roles as $role)
-            <option value="{{ $role->slug }}" {{ request('role') === $role->slug ? 'selected' : '' }}>{{ $role->name }}</option>
+              @if(strtolower($role->slug) !== 'superadmin')
+                  <option value="{{ $role->slug }}"
+                      {{ request('role') === $role->slug ? 'selected' : '' }}>
+                      {{ $role->name }}
+                  </option>
+              @endif
           @endforeach
-        </select>
+      </select>
         <button type="submit" class="btn outline sm">Filter</button>
       </form>
       @permission('accounts.create')
@@ -134,12 +139,16 @@
         <input name="email" type="email" required placeholder="budi@umkmkopi.id">
       </div>
       <div class="form-group" style="margin-bottom:12px">
-        <label>Role</label>
-        <select name="role_id" required>
-          @foreach($roles as $role)
-            <option value="{{ $role->id }}">{{ $role->name }}</option>
-          @endforeach
-        </select>
+          <label>Role</label>
+          <select name="role_id" required>
+              @foreach($roles as $role)
+                  @if(strtolower($role->name) !== 'superadmin')
+                      <option value="{{ $role->id }}">
+                          {{ $role->name }}
+                      </option>
+                  @endif
+              @endforeach
+          </select>
       </div>
       <div class="form-row" style="grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
         <div class="form-group">
