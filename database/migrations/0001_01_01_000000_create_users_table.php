@@ -74,25 +74,10 @@ return new class extends Migration
             });
         }
 
-        // Tabel audit_logs
-        if (!Schema::hasTable('audit_logs')) {
-            Schema::create('audit_logs', function (Blueprint $table) {
-                $table->id();
-                $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
-                $table->string('action', 100);
-                $table->string('entity_type', 100)->index();
-                $table->string('entity_id', 100)->nullable();
-                $table->text('description')->nullable();
-                $table->string('ip_address', 45)->nullable();
-                $table->string('user_agent', 500)->nullable();
-                $table->timestamp('created_at')->nullable()->useCurrent();
-            });
-        }
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('audit_logs');
         Schema::dropIfExists('sessions');
         Schema::dropIfExists('users');
         Schema::dropIfExists('role_permissions');
