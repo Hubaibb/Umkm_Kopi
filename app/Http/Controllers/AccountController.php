@@ -83,12 +83,26 @@ class AccountController extends Controller
     public function resetPassword(Request $request, User $user)
     {
         $validated = $request->validate([
-            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+            'password' => [
+                'required',
+                'string',
+                'confirmed',
+                Password::min(8)->letters()->numbers(),
+            ],
+        ], [
+            'password.required' => 'Password wajib diisi.',
+            'password.string' => 'Password harus berupa teks.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
         ]);
 
-        $user->update(['password' => Hash::make($validated['password'])]);
+        $user->update([
+            'password' => Hash::make($validated['password']),
+        ]);
 
-        return back()->with('success', "Password akun \"{$user->name}\" berhasil direset.");
+        return back()->with(
+            'success',
+            "Password akun \"{$user->name}\" berhasil direset."
+        );
     }
 
     public function toggleActive(Request $request, User $user)
