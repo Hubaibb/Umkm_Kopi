@@ -2,7 +2,7 @@
 @section('title', 'Manajemen Akun')
 
 @section('content')
-<div class="eyebrow">06 / Account Management</div>
+<!--<div class="eyebrow">06 / Account Management</div>-->
 <h1 class="title">Manajemen Akun</h1>
 <p class="sub">Kelola akun pengguna, role, dan hak akses sistem.</p>
 

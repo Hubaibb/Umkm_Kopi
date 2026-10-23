@@ -2,7 +2,7 @@
 @section('title', 'Riwayat Transaksi')
 
 @section('content')
-<div class="eyebrow">05 / Transaction History</div>
+<!--<div class="eyebrow">05 / Transaction History</div>-->
 <h1 class="title">Riwayat Transaksi</h1>
 <p class="sub">Lihat detail transaksi yang berhasil dan bahan yang dikurangi berdasarkan BOM.</p>
 

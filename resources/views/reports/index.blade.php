@@ -2,7 +2,7 @@
 @section('title', 'Analitik Penjualan')
 
 @section('content')
-<div class="eyebrow">04 / Sales Analytics</div>
+<!--<div class="eyebrow">04 / Sales Analytics</div>-->
 <h1 class="title">Analitik Penjualan &amp; Operasional</h1>
 <p class="sub">Ringkasan dihitung dari transaksi berhasil di database. Semua angka real-time.</p>
 

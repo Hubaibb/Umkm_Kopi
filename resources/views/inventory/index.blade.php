@@ -2,7 +2,7 @@
 @section('title', 'Bahan Baku & Stok')
 
 @section('content')
-<div class="eyebrow">02 / Inventory Management</div>
+<!--<div class="eyebrow">02 / Inventory Management</div>-->
 <h1 class="title">Bahan Baku &amp; Stok</h1>
 <p class="sub">Pantau stok saat ini, ambang minimum, dan riwayat perubahan yang berasal dari transaksi atau penyesuaian manual.</p>
 
