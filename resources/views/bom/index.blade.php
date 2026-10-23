@@ -2,7 +2,7 @@
 @section('title', 'Resep / BOM')
 
 @section('content')
-<div class="eyebrow">03 / Bill of Materials</div>
+<!--<div class="eyebrow">03 / Bill of Materials</div>-->
 <h1 class="title">Resep &amp; Takaran Bahan (BOM)</h1>
 <p class="sub">Setiap menu memiliki komposisi bahan. Saat penjualan berhasil, kebutuhan bahan dihitung dari takaran per porsi × jumlah porsi terjual.</p>
 

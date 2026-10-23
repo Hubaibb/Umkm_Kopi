@@ -30,7 +30,7 @@
     @permission('pos.create')
     <a href="{{ route('pos.index') }}"
        class="navbtn {{ request()->routeIs('pos.*') ? 'active' : '' }}">
-      <span class="material-symbols-outlined">point_of_sale</span>POS / Transaksi
+      <span class="material-symbols-outlined">point_of_sale</span>Transaksi
     </a>
     @endpermission
 
@@ -44,7 +44,7 @@
     @permission('bom.view')
     <a href="{{ route('bom.index') }}"
        class="navbtn {{ request()->routeIs('bom.*') ? 'active' : '' }}">
-      <span class="material-symbols-outlined">menu_book</span>Resep / BOM
+      <span class="material-symbols-outlined">menu_book</span>Resep 
     </a>
     @endpermission
 

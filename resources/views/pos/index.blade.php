@@ -2,7 +2,7 @@
 @section('title', 'POS / Transaksi')
 
 @section('content')
-<div class="eyebrow">01 / Point of Sales</div>
+<!--<div class="eyebrow">01 / Point of Sales</div>-->
 <h1 class="title">Transaksi Baru</h1>
 <p class="sub">Pilih menu, periksa keranjang, lalu selesaikan transaksi. Stok bahan akan dihitung dari resep BOM setelah transaksi berhasil.</p>
 
