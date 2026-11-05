@@ -335,7 +335,8 @@ function renderCart() {
 
     let total = 0;
 
-    itemsEl.innerHTML = entries.map(([id, item]) => {
+    itemsEl.innerHTML = '';
+    entries.forEach(([id, item]) => {
         const itemSubtotal = item.price * item.qty;
         total += itemSubtotal;
 
@@ -388,9 +389,8 @@ function renderCart() {
         itemTotal.textContent = money(itemSubtotal);
 
         row.append(details, itemTotal);
-
-        return row;
-    }).forEach(row => itemsEl.appendChild(row));
+        itemsEl.appendChild(row);
+    });
 
     document.getElementById('subtotal').textContent = money(total);
     document.getElementById('total').textContent = money(total);
