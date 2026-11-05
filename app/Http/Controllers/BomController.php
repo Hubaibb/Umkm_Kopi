@@ -17,7 +17,7 @@ class BomController extends Controller
         $categories = Category::where('is_active', true)->orderBy('name')->get();
         $materials  = Material::where('is_active', true)->orderBy('name')->get();
         $menus      = Menu::with(['category', 'recipeItems.material'])
-            ->where('is_active', true)
+            ->orderBy('is_active', 'desc') // aktif dulu
             ->orderBy('name')
             ->get();
 
@@ -91,6 +91,25 @@ class BomController extends Controller
     {
         $menu->update(['is_active' => false, 'updated_by' => auth()->id()]);
         return back()->with('success', "Menu \"{$menu->name}\" berhasil dinonaktifkan.");
+    }
+
+    public function activateMenu(Menu $menu)
+    {
+        $menu->update(['is_active' => true, 'updated_by' => auth()->id()]);
+        return back()->with('success', "Menu \"{$menu->name}\" berhasil diaktifkan kembali.");
+    }
+
+    public function forceDestroyMenu(Menu $menu)
+    {
+        $menuName = $menu->name;
+
+        // Hapus semua recipe items terkait
+        $menu->recipeItems()->delete();
+
+        // Hapus menu secara permanen
+        $menu->delete();
+
+        return redirect()->route('bom.index')->with('success', "Menu \"{$menuName}\" berhasil dihapus permanen.");
     }
 
     // ─── BOM / RecipeItem CRUD ──────────────────────────────────────────────────

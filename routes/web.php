@@ -58,6 +58,8 @@ Route::middleware(['auth', 'active.account'])->group(function () {
         Route::post('/menus', [BomController::class, 'storeMenu'])->name('menus.store')->middleware('permission:menu.manage');
         Route::put('/menus/{menu}', [BomController::class, 'updateMenu'])->name('menus.update')->middleware('permission:menu.manage');
         Route::delete('/menus/{menu}', [BomController::class, 'destroyMenu'])->name('menus.destroy')->middleware('permission:menu.manage');
+        Route::post('/menus/{menu}/activate', [BomController::class, 'activateMenu'])->name('menus.activate')->middleware('permission:menu.manage');
+        Route::delete('/menus/{menu}/force', [BomController::class, 'forceDestroyMenu'])->name('menus.forceDestroy')->middleware('permission:menu.manage');
 
         // Kategori
         Route::post('/categories', [BomController::class, 'storeCategory'])->name('categories.store')->middleware('permission:menu.manage');
