@@ -34,17 +34,25 @@
 <div class="panel">
   <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:15px">
     <div style="font-weight:800;font-size:15px">Daftar Persediaan</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <form method="GET" action="{{ route('inventory.index') }}" style="display:flex;gap:8px;flex-wrap:wrap">
-        <input name="search" placeholder="Cari bahan..." value="{{ request('search') }}" style="width:180px">
-        <select name="status" onchange="this.form.submit()">
-          <option value="">Semua status</option>
-          @foreach(['Aman','Menipis','Habis'] as $s)
-            <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ $s }}</option>
-          @endforeach
-        </select>
+    
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto;">
+      <form method="GET" action="{{ route('inventory.index') }}" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input name="search" placeholder="Cari bahan..." value="{{ request('search') }}" class="inventory-search">
+        
+        <div class="inventory-select-wrapper">
+          <select name="status" onchange="this.form.submit()" class="inventory-select">
+            <option value="">Semua status</option>
+            @foreach(['Aman','Menipis','Habis'] as $s)
+              <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ $s }}</option>
+            @endforeach
+          </select>
+        </div>
+
         <button type="submit" class="btn outline sm">Filter</button>
       </form>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
       @permission('inventory.manage')
         <button class="btn sm" onclick="openModal('addMaterialModal')">+ Tambah Bahan</button>
       @endpermission
@@ -283,4 +291,55 @@ function openEditMaterial(id, name, unit, minStock) {
   openModal('editMaterialModal');
 }
 </script>
+
+<style>
+/* Styling untuk input pencarian dan select filter di inventory agar sejajar dengan tombol */
+.inventory-search {
+    width: 180px;
+    height: 38px;
+    box-sizing: border-box;
+    padding: 0 14px;
+    border: 1px solid #e5dfda;
+    border-radius: 12px;
+    background: #fff;
+    color: #333;
+    font-size: 14px;
+    outline: none;
+}
+
+.inventory-search::placeholder {
+    color: #aaa49f;
+}
+
+.inventory-select-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.inventory-select {
+    height: 38px;
+    box-sizing: border-box;
+    padding: 0 35px 0 14px;
+    border: 1px solid #e5dfda;
+    border-radius: 12px;
+    background-color: #fff;
+    color: #333;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+}
+
+.inventory-search:focus,
+.inventory-select:focus {
+    border-color: #b8a69a;
+}
+</style>
 @endpush

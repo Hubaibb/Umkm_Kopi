@@ -10,10 +10,14 @@
 
     {{-- Menu Grid --}}
     <div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
-            <input id="menuSearch" placeholder="Cari nama menu..." style="flex:1;min-width:180px">
+        <div class="menu-filter">
+            <input
+                type="text"
+                id="menuSearch"
+                placeholder="Cari nama menu..."
+            >
 
-            <select id="categoryFilter" style="min-width:150px">
+            <select id="categoryFilter">
                 <option value="">Semua kategori</option>
                 @foreach($categories as $cat)
                     <option value="{{ $cat->name }}">{{ $cat->name }}</option>
@@ -609,6 +613,77 @@ async function processCheckout(cashPayment = null) {
 </script>
 
 <style>
+/* Filter menu: disesuaikan dengan desain referensi */
+.menu-filter {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.menu-filter input {
+    flex: 1;
+    min-width: 180px;
+    width: 0;
+    height: 56px;
+    box-sizing: border-box;
+    padding: 0 21px;
+    border: 1px solid #e5dfda;
+    border-radius: 17px;
+    background: #fff;
+    color: #333;
+    font-size: 17px;
+    outline: none;
+}
+
+.menu-filter input::placeholder {
+    color: #aaa49f;
+}
+
+.menu-filter input:focus,
+.menu-filter select:focus {
+    border-color: #b8a69a;
+}
+
+.menu-filter select {
+    width: 220px;
+    min-width: 150px;
+    height: 56px;
+    box-sizing: border-box;
+    padding: 0 45px 0 18px;
+    border: 1px solid #e5dfda;
+    border-radius: 17px;
+    background-color: #fff;
+    color: #333;
+    font-size: 17px;
+    outline: none;
+    cursor: pointer;
+    
+    /* Tambahan agar ikon panah geser ke kanan */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 18px center;
+    background-size: 16px;
+}
+
+@media (max-width: 600px) {
+    .menu-filter {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .menu-filter input,
+    .menu-filter select {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
 @keyframes spin {
     to {
         transform: rotate(360deg);
