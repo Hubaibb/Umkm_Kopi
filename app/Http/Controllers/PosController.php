@@ -16,7 +16,7 @@ class PosController extends Controller
     {
         $categories = Category::where('is_active', true)->orderBy('name')->get();
         $menus      = Menu::with(['category', 'recipeItems.material'])
-            ->where('is_active', true)
+            ->orderBy('is_active', 'desc') // aktif dulu
             ->orderBy('name')
             ->get();
 

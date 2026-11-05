@@ -26,7 +26,7 @@
       <select id="menuSelect" onchange="location.href='{{ route('bom.index') }}?menu_id='+this.value">
         @foreach($menus as $menu)
           <option value="{{ $menu->id }}" {{ $selectedMenu?->id === $menu->id ? 'selected' : '' }}>
-            {{ $menu->name }}
+            {{ $menu->name }}{{ !$menu->is_active ? ' (Nonaktif)' : '' }}
           </option>
         @endforeach
       </select>
@@ -38,9 +38,20 @@
       @permission('menu.manage')
         @if($selectedMenu)
           <button class="btn secondary sm" onclick="openEditMenuModal()">✏ Ubah Menu</button>
-          <form method="POST" action="{{ route('bom.menus.destroy', $selectedMenu) }}" onsubmit="return confirm('Nonaktifkan menu ini?')">
+          @if($selectedMenu->is_active)
+            <form method="POST" action="{{ route('bom.menus.destroy', $selectedMenu) }}" onsubmit="return confirm('Nonaktifkan menu ini? Menu tidak akan tampil di POS.')">
+              @csrf @method('DELETE')
+              <button type="submit" class="btn secondary sm" style="color:var(--amber);border-color:var(--amber)">⏸ Nonaktifkan</button>
+            </form>
+          @else
+            <form method="POST" action="{{ route('bom.menus.activate', $selectedMenu) }}" onsubmit="return confirm('Aktifkan kembali menu ini?')">
+              @csrf
+              <button type="submit" class="btn sm" style="background:var(--green)">▶ Aktifkan</button>
+            </form>
+          @endif
+          <form method="POST" action="{{ route('bom.menus.forceDestroy', $selectedMenu) }}" onsubmit="return confirm('HAPUS PERMANEN menu ini beserta semua resepnya? Tindakan ini tidak dapat dibatalkan!')">
             @csrf @method('DELETE')
-            <button type="submit" class="btn danger sm">Nonaktifkan Menu</button>
+            <button type="submit" class="btn danger sm">🗑 Hapus Menu</button>
           </form>
         @endif
       @endpermission
@@ -53,6 +64,9 @@
       <span class="tag">{{ $selectedMenu->category->name }}</span>
       <div>
         <b>{{ $selectedMenu->name }}</b>
+        @if(!$selectedMenu->is_active)
+          <span class="status empty" style="margin-left:6px">Nonaktif</span>
+        @endif
         <div class="sub">Harga jual: <b>{{ $selectedMenu->price_formatted }}</b> / porsi</div>
       </div>
     </div>
@@ -138,9 +152,9 @@
   <div id="simResult" class="sub">Hasil simulasi akan tampil di sini.</div>
 </div>
 
-{{-- ── Semua Menu Aktif ────────────────────────────────────────── --}}
+{{-- ── Semua Menu ────────────────────────────────────────── --}}
 <div class="panel" style="margin-top:16px">
-  <div style="font-weight:800;margin-bottom:12px;font-size:15px">Semua Menu Aktif</div>
+  <div style="font-weight:800;margin-bottom:12px;font-size:15px">Semua Menu</div>
   <div class="table-wrap">
     <table>
       <thead>
@@ -149,16 +163,24 @@
           <th>Kategori</th>
           <th>Harga</th>
           <th>Jumlah Bahan</th>
+          <th>Status</th>
           @permission('menu.manage')<th>Aksi</th>@endpermission
         </tr>
       </thead>
       <tbody>
         @foreach($menus as $menu)
-          <tr>
+          <tr style="{{ !$menu->is_active ? 'opacity:0.6' : '' }}">
             <td><b>{{ $menu->name }}</b><br><span class="sub" style="font-size:11px">{{ $menu->description }}</span></td>
             <td><span class="tag">{{ $menu->category->name }}</span></td>
             <td><b>{{ $menu->price_formatted }}</b></td>
             <td>{{ $menu->recipeItems->count() }} bahan</td>
+            <td>
+              @if($menu->is_active)
+                <span class="status safe">Aktif</span>
+              @else
+                <span class="status empty">Nonaktif</span>
+              @endif
+            </td>
             @permission('menu.manage')
             <td>
               <a href="{{ route('bom.index', ['menu_id' => $menu->id]) }}" class="btn outline sm">Lihat BOM</a>

@@ -80,4 +80,61 @@ class Menu extends Model
         }
         return false;
     }
+
+    /**
+     * Cek apakah ada bahan yang stoknya menipis (mendekati/di bawah minimum_stock).
+     */
+    public function hasLowStockMaterial(): bool
+    {
+        foreach ($this->recipeItems as $item) {
+            if ($item->material->current_stock > 0 && $item->material->current_stock <= $item->material->minimum_stock) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Mendapatkan status ketersediaan menu untuk POS.
+     * Prioritas: tidak aktif > stok habis > stok menipis > aktif
+     */
+    public function getAvailabilityStatusAttribute(): string
+    {
+        if (!$this->is_active) {
+            return 'unavailable';
+        }
+        if ($this->hasOutOfStockMaterial()) {
+            return 'out_of_stock';
+        }
+        if ($this->hasLowStockMaterial()) {
+            return 'low_stock';
+        }
+        return 'available';
+    }
+
+    /**
+     * Label status ketersediaan menu.
+     */
+    public function getAvailabilityLabelAttribute(): string
+    {
+        return match ($this->availability_status) {
+            'unavailable'  => 'Menu Tidak Tersedia',
+            'out_of_stock' => 'Periksa stok',
+            'low_stock'    => 'Stok Menipis',
+            default        => 'Menu Aktif',
+        };
+    }
+
+    /**
+     * CSS class untuk status ketersediaan.
+     */
+    public function getAvailabilityClassAttribute(): string
+    {
+        return match ($this->availability_status) {
+            'unavailable'  => 'empty',
+            'out_of_stock' => 'empty',
+            'low_stock'    => 'low',
+            default        => 'safe',
+        };
+    }
 }

@@ -12,10 +12,10 @@
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <form method="GET" action="{{ route('accounts.index') }}" style="display:flex;gap:8px;flex-wrap:wrap">
         <input name="search" value="{{ request('search') }}" placeholder="Cari nama/username/email..." style="width:210px">
-        <select name="role" onchange="this.form.submit()" style="width:auto">
+        <select name="role" onchange="this.form.submit()" class="role-filter-select">
           <option value="">Semua role</option>
           @foreach($roles as $role)
-              @if(strtolower($role->slug) !== 'superadmin')
+              @if(!in_array(strtolower($role->slug), ['superadmin', 'pengelola']))
                   <option value="{{ $role->slug }}"
                       {{ request('role') === $role->slug ? 'selected' : '' }}>
                       {{ $role->name }}
@@ -23,7 +23,7 @@
               @endif
           @endforeach
       </select>
-        <button type="submit" class="btn outline sm">Filter</button>
+        <!--<button type="submit" class="btn outline sm">Filter</button>-->
       </form>
       @permission('accounts.create')
         <button class="btn sm" onclick="openModal('addAccountModal')">+ Akun Baru</button>
@@ -198,12 +198,14 @@
         <input id="edit_acc_email" name="email" type="email" required>
       </div>
       <div class="form-group" style="margin-bottom:12px">
-        <label>Role</label>
-        <select id="edit_acc_role" name="role_id" required>
-          @foreach($roles as $role)
-            <option value="{{ $role->id }}">{{ $role->name }}</option>
-          @endforeach
-        </select>
+          <label>Role</label>
+          <select id="edit_acc_role" name="role_id" required>
+            @foreach($roles as $role)
+              @if(!in_array(strtolower($role->name), ['superadmin', 'pengelola']))
+                <option value="{{ $role->id }}">{{ $role->name }}</option>
+              @endif
+            @endforeach
+          </select>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
         <input type="checkbox" name="is_active" id="edit_acc_active" value="1" style="width:auto">
@@ -296,4 +298,18 @@ function openResetPw(id, name) {
   openModal('resetPwModal');
 }
 </script>
+
+<style>
+.role-filter-select {
+    width: auto;
+    padding-right: 38px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 14px;
+}
+</style>
 @endpush

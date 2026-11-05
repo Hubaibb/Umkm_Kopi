@@ -28,25 +28,22 @@
         <div id="menuGrid" class="menu-grid">
             @forelse($menus as $menu)
                 @php
-                    $hasOutOfStock = $menu->hasOutOfStockMaterial();
+                    $availStatus = $menu->availability_status;
+                    $isOrderable = $availStatus === 'available' || $availStatus === 'low_stock';
                 @endphp
 
-                <article class="menu-card"
+                <article class="menu-card{{ !$isOrderable ? ' menu-card-disabled' : '' }}"
                     data-id="{{ $menu->id }}"
                     data-name="{{ $menu->name }}"
                     data-price="{{ (float) $menu->price }}"
                     data-category="{{ $menu->category->name }}"
                     data-desc="{{ $menu->description }}"
-                    data-out="{{ $hasOutOfStock ? '1' : '0' }}">
+                    data-status="{{ $availStatus }}"
+                    data-out="{{ !$isOrderable ? '1' : '0' }}">
 
                     <div style="display:flex;justify-content:space-between;gap:8px;align-items:start">
                         <span class="tag">{{ $menu->category->name }}</span>
-
-                        @if($hasOutOfStock)
-                            <span class="status empty">Periksa stok</span>
-                        @else
-                            <span class="status safe">Menu aktif</span>
-                        @endif
+                        <span class="status {{ $menu->availability_class }}">{{ $menu->availability_label }}</span>
                     </div>
 
                     <h3 style="margin-top:12px">{{ $menu->name }}</h3>
@@ -55,17 +52,21 @@
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px">
                         <span class="price">{{ $menu->price_formatted }}</span>
 
-                        <button
-                            type="button"
-                            class="btn sm"
-                            onclick="addToCart({{ $menu->id }})">
-                            + Tambah
-                        </button>
+                        @if($isOrderable)
+                            <button
+                                type="button"
+                                class="btn sm"
+                                onclick="addToCart({{ $menu->id }})">
+                                + Tambah
+                            </button>
+                        @else
+                            <span class="sub" style="font-size:11px;font-style:italic">Tidak dapat dipesan</span>
+                        @endif
                     </div>
                 </article>
             @empty
                 <div class="sub" style="grid-column:span 2;padding:30px;text-align:center">
-                    Belum ada menu aktif.
+                    Belum ada menu.
                 </div>
             @endforelse
         </div>
@@ -183,7 +184,8 @@
         'price'    => (float) $m->price,
         'category' => $m->category->name,
         'desc'     => $m->description,
-        'out'      => $m->hasOutOfStockMaterial(),
+        'status'   => $m->availability_status,
+        'out'      => !in_array($m->availability_status, ['available', 'low_stock']),
     ])->values();
 @endphp
 
@@ -266,7 +268,11 @@ function addToCart(id) {
     }
 
     if (menu.out) {
-        showToast('Stok bahan menu ini perlu diperiksa.', 'error');
+        if (menu.status === 'unavailable') {
+            showToast('Menu ini tidak tersedia.', 'error');
+        } else {
+            showToast('Stok bahan menu ini perlu diperiksa.', 'error');
+        }
         return;
     }
 
@@ -335,7 +341,8 @@ function renderCart() {
 
     let total = 0;
 
-    itemsEl.innerHTML = entries.map(([id, item]) => {
+    itemsEl.innerHTML = '';
+    entries.forEach(([id, item]) => {
         const itemSubtotal = item.price * item.qty;
         total += itemSubtotal;
 
@@ -388,9 +395,8 @@ function renderCart() {
         itemTotal.textContent = money(itemSubtotal);
 
         row.append(details, itemTotal);
-
-        return row;
-    }).forEach(row => itemsEl.appendChild(row));
+        itemsEl.appendChild(row);
+    });
 
     document.getElementById('subtotal').textContent = money(total);
     document.getElementById('total').textContent = money(total);
@@ -789,6 +795,17 @@ async function processCheckout(cashPayment = null) {
     .payment-modal-actions button {
         width: 100%;
     }
+}
+
+/* ── Disabled menu card (nonaktif / stok habis) ─────────── */
+.menu-card-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+    position: relative;
+}
+.menu-card-disabled .btn {
+    display: none;
 }
 </style>
 @endpush
