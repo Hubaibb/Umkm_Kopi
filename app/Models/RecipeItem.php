@@ -48,4 +48,13 @@ class RecipeItem extends Model
     {
         return (float) $this->material->current_stock - (float) $this->quantity_per_serving;
     }
+
+    /**
+     * Format estimasi stok setelah 1 porsi (hapus trailing zeros).
+     */
+    public function getStockAfterOneServingFormattedAttribute(): string
+    {
+        $val = $this->stock_after_one_serving;
+        return rtrim(rtrim(number_format($val, 3, ',', '.'), '0'), ',');
+    }
 }

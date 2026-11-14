@@ -12,16 +12,17 @@ class InventoryController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Material::query()->where('is_active', true);
+        $query = Material::query();
 
         if ($search = $request->get('search')) {
             $query->where('name', 'like', "%{$search}%");
         }
 
         if ($status = $request->get('status')) {
-            $query->when($status === 'Aman', fn($q) => $q->whereRaw('current_stock > minimum_stock'))
-                  ->when($status === 'Menipis', fn($q) => $q->whereRaw('current_stock > 0 AND current_stock <= minimum_stock'))
-                  ->when($status === 'Habis', fn($q) => $q->where('current_stock', '<=', 0));
+            $query->when($status === 'Aman', fn($q) => $q->where('is_active', true)->whereRaw('current_stock > minimum_stock'))
+                  ->when($status === 'Menipis', fn($q) => $q->where('is_active', true)->whereRaw('current_stock > 0 AND current_stock <= minimum_stock'))
+                  ->when($status === 'Habis', fn($q) => $q->where('is_active', true)->where('current_stock', '<=', 0))
+                  ->when($status === 'Nonaktif', fn($q) => $q->where('is_active', false));
         }
 
         $materials    = $query->orderBy('name')->paginate(15)->withQueryString();
@@ -98,6 +99,30 @@ class InventoryController extends Controller
         // Soft delete: nonaktifkan daripada hapus permanen
         $material->update(['is_active' => false, 'updated_by' => auth()->id()]);
         return back()->with('success', "Bahan baku \"{$material->name}\" berhasil dinonaktifkan.");
+    }
+
+    public function activateMaterial(Material $material)
+    {
+        $material->update(['is_active' => true, 'updated_by' => auth()->id()]);
+        return back()->with('success', "Bahan baku \"{$material->name}\" berhasil diaktifkan kembali.");
+    }
+
+    public function forceDestroy(Material $material)
+    {
+        $materialName = $material->name;
+
+        // Cek apakah bahan dipakai di resep
+        if ($material->recipeItems()->exists()) {
+            return back()->withErrors(['material' => "Bahan \"{$materialName}\" masih digunakan dalam resep menu. Hapus dari resep terlebih dahulu."]);
+        }
+
+        // Hapus riwayat pergerakan stok terkait
+        $material->stockMovements()->delete();
+
+        // Hapus material
+        $material->delete();
+
+        return back()->with('success', "Bahan baku \"{$materialName}\" berhasil dihapus permanen.");
     }
 
     public function adjust(Request $request)

@@ -42,7 +42,7 @@
         <div class="inventory-select-wrapper">
           <select name="status" onchange="this.form.submit()" class="inventory-select">
             <option value="">Semua status</option>
-            @foreach(['Aman','Menipis','Habis'] as $s)
+            @foreach(['Aman','Menipis','Habis','Nonaktif'] as $s)
               <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ $s }}</option>
             @endforeach
           </select>
@@ -75,26 +75,47 @@
       </thead>
       <tbody>
         @forelse($materials as $mat)
-          <tr>
+          <tr style="{{ !$mat->is_active ? 'opacity:0.55' : '' }}">
             <td><b>{{ $mat->name }}</b></td>
             <td>{{ $mat->stock_formatted }} {{ $mat->unit }}</td>
             <td>{{ $mat->min_stock_formatted }} {{ $mat->unit }}</td>
-            <td><span class="status {{ $mat->status_class }}">{{ $mat->status }}</span></td>
+            <td>
+              @if($mat->is_active)
+                <span class="status {{ $mat->status_class }}">{{ $mat->status }}</span>
+              @else
+                <span class="status inactive-badge">Nonaktif</span>
+              @endif
+            </td>
             <td style="display:flex;gap:6px;flex-wrap:wrap">
-              @permission('inventory.adjust')
-                <button class="btn secondary sm"
-                  onclick="openAdjustFor({{ $mat->id }}, '{{ addslashes($mat->name) }}', '{{ $mat->unit }}')">
-                  Sesuaikan
-                </button>
-              @endpermission
+              @if($mat->is_active)
+                @permission('inventory.adjust')
+                  <button class="btn secondary sm"
+                    onclick="openAdjustFor({{ $mat->id }}, '{{ addslashes($mat->name) }}', '{{ $mat->unit }}')">
+                    Sesuaikan
+                  </button>
+                @endpermission
+                @permission('inventory.manage')
+                  <button class="btn outline sm"
+                    onclick="openEditMaterial({{ $mat->id }}, '{{ addslashes($mat->name) }}', '{{ $mat->unit }}', {{ $mat->minimum_stock }})">
+                    Ubah
+                  </button>
+                  <form method="POST" action="{{ route('inventory.destroy', $mat) }}" onsubmit="return confirm('Nonaktifkan bahan ini? Bahan tidak akan bisa digunakan dalam resep.')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn secondary sm" style="color:var(--amber);border-color:var(--amber)">⏸ Nonaktifkan</button>
+                  </form>
+                @endpermission
+              @else
+                @permission('inventory.manage')
+                  <form method="POST" action="{{ route('inventory.activate', $mat) }}" onsubmit="return confirm('Aktifkan kembali bahan ini?')">
+                    @csrf
+                    <button type="submit" class="btn sm" style="background:var(--green)">▶ Aktifkan</button>
+                  </form>
+                @endpermission
+              @endif
               @permission('inventory.manage')
-                <button class="btn outline sm"
-                  onclick="openEditMaterial({{ $mat->id }}, '{{ addslashes($mat->name) }}', '{{ $mat->unit }}', {{ $mat->minimum_stock }})">
-                  Ubah
-                </button>
-                <form method="POST" action="{{ route('inventory.destroy', $mat) }}" onsubmit="return confirm('Nonaktifkan bahan ini?')">
+                <form method="POST" action="{{ route('inventory.forceDestroy', $mat) }}" onsubmit="return confirm('HAPUS PERMANEN bahan ini beserta riwayat stoknya? Tindakan ini tidak dapat dibatalkan!')">
                   @csrf @method('DELETE')
-                  <button type="submit" class="btn danger sm">Nonaktifkan</button>
+                  <button type="submit" class="btn danger sm">🗑 Hapus</button>
                 </form>
               @endpermission
             </td>

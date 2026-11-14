@@ -16,7 +16,7 @@ class CheckoutService
     /**
      * Proses checkout dengan atomic transaction dan row locking.
      *
-     * @param  array  $cartItems  [['menu_id' => 1, 'quantity' => 2], ...]
+     * @param  array  $cartItems  [['menu_id' => 1, 'quantity' => 2, 'size' => 'medium', 'size_multiplier' => 1.0], ...]
      * @param  string $paymentMethod  'cash' | 'qris'
      * @param  int    $cashierId
      * @param  string|null $notes
@@ -47,10 +47,11 @@ class CheckoutService
             foreach ($cartItems as $item) {
                 $menu = $menus->get($item['menu_id']);
                 $qty  = (int) $item['quantity'];
+                $sizeMultiplier = (float) ($item['size_multiplier'] ?? 1.0);
 
                 foreach ($menu->recipeItems as $recipeItem) {
                     $matId = $recipeItem->material_id;
-                    $materialNeeds[$matId] = ($materialNeeds[$matId] ?? 0) + ($recipeItem->quantity_per_serving * $qty);
+                    $materialNeeds[$matId] = ($materialNeeds[$matId] ?? 0) + ($recipeItem->quantity_per_serving * $qty * $sizeMultiplier);
                 }
             }
 
@@ -82,7 +83,8 @@ class CheckoutService
 
             foreach ($cartItems as $item) {
                 $menu = $menus->get($item['menu_id']);
-                $subtotal += $menu->price * $item['quantity'];
+                $sizeMultiplier = (float) ($item['size_multiplier'] ?? 1.0);
+                $subtotal += ($menu->price * $sizeMultiplier) * $item['quantity'];
             }
 
             /** @var Sale $sale */
@@ -101,14 +103,17 @@ class CheckoutService
             foreach ($cartItems as $item) {
                 $menu     = $menus->get($item['menu_id']);
                 $qty      = (int) $item['quantity'];
-                $lineTotal = $menu->price * $qty;
+                $sizeMultiplier = (float) ($item['size_multiplier'] ?? 1.0);
+                $sizeLabel = ($item['size'] ?? 'medium') === 'large' ? ' (Large)' : ' (Medium)';
+                $unitPrice = $menu->price * $sizeMultiplier;
+                $lineTotal = $unitPrice * $qty;
 
                 /** @var SaleItem $saleItem */
                 $saleItem = SaleItem::create([
                     'sale_id'            => $sale->id,
                     'menu_id'            => $menu->id,
-                    'menu_name_snapshot' => $menu->name,
-                    'unit_price'         => $menu->price,
+                    'menu_name_snapshot' => $menu->name . $sizeLabel,
+                    'unit_price'         => $unitPrice,
                     'quantity'           => $qty,
                     'line_total'         => $lineTotal,
                 ]);
@@ -116,7 +121,7 @@ class CheckoutService
                 // Catat pemakaian material per item
                 foreach ($menu->recipeItems as $recipeItem) {
                     $material  = $materials->get($recipeItem->material_id);
-                    $usedQty   = $recipeItem->quantity_per_serving * $qty;
+                    $usedQty   = $recipeItem->quantity_per_serving * $qty * $sizeMultiplier;
 
                     SaleMaterialUsage::create([
                         'sale_id'               => $sale->id,

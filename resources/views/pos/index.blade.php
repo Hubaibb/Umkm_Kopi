@@ -175,17 +175,44 @@
         </div>
     </div>
 </div>
+{{-- Pop-up Pilih Ukuran Minuman --}}
+<div id="sizeSelectionModal" class="payment-modal" hidden>
+    <div class="payment-modal-content" role="dialog" aria-modal="true" style="max-width:380px">
+        <div class="payment-modal-header">
+            <div>
+                <div class="eyebrow">PILIH UKURAN</div>
+                <h2 style="margin:8px 0;font-size:20px">Pilih Ukuran Minuman</h2>
+                <p class="sub" id="sizeModalMenuName" style="font-weight:600"></p>
+            </div>
+            <button type="button" class="btn secondary sm" onclick="closeSizeModal()">Tutup</button>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:8px">
+            <button type="button" class="size-option-btn" onclick="selectSize('medium')">
+                <span class="size-icon">M</span>
+                <span style="font-weight:700;font-size:15px">Medium</span>
+                <span class="sub" id="sizeModalPriceMedium"></span>
+            </button>
+            <button type="button" class="size-option-btn" onclick="selectSize('large')">
+                <span class="size-icon size-icon-lg">L</span>
+                <span style="font-weight:700;font-size:15px">Large</span>
+                <span class="sub" id="sizeModalPriceLarge"></span>
+            </button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @php
     $menusJson = $menus->map(fn($m) => [
-        'id'       => $m->id,
-        'name'     => $m->name,
-        'price'    => (float) $m->price,
-        'category' => $m->category->name,
-        'desc'     => $m->description,
-        'status'   => $m->availability_status,
-        'out'      => !in_array($m->availability_status, ['available', 'low_stock']),
+        'id'          => $m->id,
+        'name'        => $m->name,
+        'price'       => (float) $m->price,
+        'price_large' => (float) $m->price * 1.5,
+        'category'    => $m->category->name,
+        'desc'        => $m->description,
+        'status'      => $m->availability_status,
+        'out'         => !in_array($m->availability_status, ['available', 'low_stock']),
     ])->values();
 @endphp
 
@@ -256,7 +283,10 @@ document.getElementById('menuSearch')
 document.getElementById('categoryFilter')
     .addEventListener('change', filterMenus);
 
-// Tambah menu ke keranjang
+// Pending menu untuk size selection
+let pendingSizeMenuId = null;
+
+// Tambah menu ke keranjang — buka popup pilih ukuran
 function addToCart(id) {
     if (checkoutInProgress) return;
 
@@ -276,18 +306,52 @@ function addToCart(id) {
         return;
     }
 
-    if (cart[id]) {
-        cart[id].qty++;
+    // Buka popup pilih ukuran
+    pendingSizeMenuId = id;
+    document.getElementById('sizeModalMenuName').textContent = menu.name;
+    document.getElementById('sizeModalPriceMedium').textContent = money(menu.price);
+    document.getElementById('sizeModalPriceLarge').textContent = money(menu.price_large);
+    document.getElementById('sizeSelectionModal').hidden = false;
+}
+
+function selectSize(size) {
+    const id = pendingSizeMenuId;
+    if (!id) return;
+
+    const menu = MENUS.find(item => Number(item.id) === Number(id));
+    if (!menu) return;
+
+    const sizeLabel = size === 'large' ? 'Large' : 'Medium';
+    const price = size === 'large' ? Number(menu.price_large) : Number(menu.price);
+    const sizeMultiplier = size === 'large' ? 1.5 : 1.0;
+    const cartKey = id + '_' + size;
+
+    if (cart[cartKey]) {
+        cart[cartKey].qty++;
     } else {
-        cart[id] = {
-            name: menu.name,
-            price: Number(menu.price),
-            qty: 1
+        cart[cartKey] = {
+            menu_id: Number(id),
+            name: menu.name + ' (' + sizeLabel + ')',
+            price: price,
+            qty: 1,
+            size: size,
+            size_multiplier: sizeMultiplier
         };
     }
 
+    document.getElementById('sizeSelectionModal').hidden = true;
+    pendingSizeMenuId = null;
     renderCart();
 }
+
+function closeSizeModal() {
+    document.getElementById('sizeSelectionModal').hidden = true;
+    pendingSizeMenuId = null;
+}
+
+document.getElementById('sizeSelectionModal').addEventListener('click', function(e) {
+    if (e.target === this) closeSizeModal();
+});
 
 // Ubah kuantitas
 function changeQty(id, delta) {
@@ -447,8 +511,9 @@ cashModal.addEventListener('click', event => {
 });
 
 document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && !cashModal.hidden) {
-        closeCashPayment();
+    if (event.key === 'Escape') {
+        if (!cashModal.hidden) closeCashPayment();
+        if (!document.getElementById('sizeSelectionModal').hidden) closeSizeModal();
     }
 });
 
@@ -554,9 +619,11 @@ async function processCheckout(cashPayment = null) {
         <span class="material-symbols-outlined">progress_activity</span>
         Memproses...`;
 
-    const items = Object.entries(cart).map(([id, item]) => ({
-        menu_id: Number.parseInt(id, 10),
-        quantity: item.qty
+    const items = Object.entries(cart).map(([key, item]) => ({
+        menu_id: item.menu_id || Number.parseInt(key, 10),
+        quantity: item.qty,
+        size: item.size || 'medium',
+        size_multiplier: item.size_multiplier || 1.0
     }));
 
     const payload = {
@@ -806,6 +873,45 @@ async function processCheckout(cashPayment = null) {
 }
 .menu-card-disabled .btn {
     display: none;
+}
+
+/* ── Size selection buttons ───────────────────────────── */
+.size-option-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 22px 16px;
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, box-shadow .15s;
+}
+.size-option-btn:hover {
+    border-color: var(--coffee);
+    background: #fdfaf8;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.size-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #f2e6dc;
+    color: var(--coffee);
+    font-weight: 800;
+    font-size: 20px;
+}
+.size-icon-lg {
+    width: 58px;
+    height: 58px;
+    font-size: 24px;
+    background: var(--coffee);
+    color: #fff;
 }
 </style>
 @endpush
