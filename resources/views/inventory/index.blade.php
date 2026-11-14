@@ -31,7 +31,7 @@
 </div>
 
 {{-- ── Daftar Persediaan ──────────────────────────────────────── --}}
-<div class="panel">
+<div class="panel" id="daftar-persediaan">
   <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:15px">
     <div style="font-weight:800;font-size:15px">Daftar Persediaan</div>
     
@@ -133,12 +133,29 @@
       </tbody>
     </table>
   </div>
-  {{ $materials->links('vendor.pagination.custom') }}
+  {{ $materials->links('vendor.pagination.custom', ['anchor' => '#daftar-persediaan']) }}
 </div>
 
 {{-- ── Riwayat Pergerakan Stok ─────────────────────────────────── --}}
-<div class="panel" style="margin-top:16px">
-  <div style="font-weight:800;margin-bottom:12px;font-size:15px">Riwayat Pergerakan Stok</div>
+<div class="panel" id="riwayat-stok" style="margin-top:16px">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+    <div style="font-weight:800;font-size:15px">Riwayat Pergerakan Stok</div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#666">
+      <span>Tampilkan</span>
+      <form method="GET" action="{{ route('inventory.index') }}#riwayat-stok" id="movPerPageForm">
+        @if(request('search'))<input type="hidden" name="search" value="{{ request('search') }}">@endif
+        @if(request('status'))<input type="hidden" name="status" value="{{ request('status') }}">@endif
+        <div class="inventory-select-wrapper">
+          <select name="mov_per_page" class="perpage-select" onchange="this.form.submit()">
+            @foreach([10, 25, 50] as $pp)
+              <option value="{{ $pp }}" {{ $movPerPage == $pp ? 'selected' : '' }}>{{ $pp }}</option>
+            @endforeach
+          </select>
+        </div>
+      </form>
+      <span>data</span>
+    </div>
+  </div>
   <div class="table-wrap">
     <table>
       <thead>
@@ -176,7 +193,7 @@
       </tbody>
     </table>
   </div>
-  {{ $movements->links('vendor.pagination.custom') }}
+  {{ $movements->links('vendor.pagination.custom', ['anchor' => '#riwayat-stok']) }}
 </div>
 
 {{-- ── Modal: Tambah Bahan ─────────────────────────────────────── --}}

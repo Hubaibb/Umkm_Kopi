@@ -97,8 +97,22 @@
 </div>
 
 {{-- ── Ringkasan Transaksi ─────────────────────────────────────── --}}
-<div class="panel" style="margin-top:16px">
-  <div style="font-weight:800;margin-bottom:12px;font-size:15px">Ringkasan Transaksi</div>
+<div class="panel" id="ringkasan-transaksi" style="margin-top:16px">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+    <div style="font-weight:800;font-size:15px">Ringkasan Transaksi</div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#666">
+      <span>Tampilkan</span>
+      <form method="GET" action="{{ route('reports.index') }}#ringkasan-transaksi">
+        @if($period !== 'all')<input type="hidden" name="period" value="{{ $period }}">@endif
+        <select name="per_page" class="perpage-select" onchange="this.form.submit()">
+          @foreach([10, 25, 50] as $pp)
+            <option value="{{ $pp }}" {{ $perPage == $pp ? 'selected' : '' }}>{{ $pp }}</option>
+          @endforeach
+        </select>
+      </form>
+      <span>data</span>
+    </div>
+  </div>
   <div class="table-wrap">
     <table>
       <thead>
@@ -134,5 +148,6 @@
       </tbody>
     </table>
   </div>
+  {{ $sales->links('vendor.pagination.custom', ['anchor' => '#ringkasan-transaksi']) }}
 </div>
 @endsection

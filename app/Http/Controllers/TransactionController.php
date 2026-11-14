@@ -18,9 +18,17 @@ class TransactionController extends Controller
             });
         }
 
-        $sales = $query->orderByDesc('completed_at')->paginate(15)->withQueryString();
+        $perPage = in_array((int) $request->input('per_page', 10), [10, 25, 50]) ? (int) $request->input('per_page', 10) : 10;
 
-        return view('transactions.index', compact('sales'));
+        $sales = $query->orderByDesc('completed_at')
+            ->paginate($perPage);
+
+        $sales->appends(array_filter([
+            'search'   => $request->input('search'),
+            'per_page' => $perPage,
+        ]));
+
+        return view('transactions.index', compact('sales', 'perPage'));
     }
 
     public function show(Sale $sale)

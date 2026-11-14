@@ -37,11 +37,19 @@ class InventoryController extends Controller
             'empty'  => $allActive->filter(fn($m) => $m->status === 'Habis')->count(),
         ];
 
+        $movPerPage = in_array((int) $request->input('mov_per_page', 10), [10, 25, 50]) ? (int) $request->input('mov_per_page', 10) : 10;
+
         $movements = StockMovement::with(['material', 'user'])
             ->orderByDesc('created_at')
-            ->paginate(20, ['*'], 'mov_page');
+            ->paginate($movPerPage, ['*'], 'mov_page');
+// 
+        $movements->appends(array_filter([
+            'search'       => $request->input('search'),
+            'status'       => $request->input('status'),
+            'mov_per_page' => $movPerPage,
+        ]));
 
-        return view('inventory.index', compact('materials', 'allMaterials', 'stats', 'movements'));
+        return view('inventory.index', compact('materials', 'allMaterials', 'stats', 'movements', 'movPerPage'));
     }
 
     public function store(Request $request)

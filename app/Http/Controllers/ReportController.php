@@ -19,11 +19,12 @@ class ReportController extends Controller
             $query->today();
         }
 
-        $sales = $query->orderByDesc('completed_at')->get();
+        // Clone query untuk stats sebelum paginate
+        $allSales = (clone $query)->get();
 
         // Summary stats
-        $totalRevenue  = $sales->sum('total');
-        $totalCount    = $sales->count();
+        $totalRevenue  = $allSales->sum('total');
+        $totalCount    = $allSales->count();
         $avgRevenue    = $totalCount > 0 ? $totalRevenue / $totalCount : 0;
 
         // Bahan menipis/habis
@@ -34,7 +35,7 @@ class ReportController extends Controller
 
         // Menu terlaris berdasarkan qty porsi
         $topMenus = [];
-        foreach ($sales as $sale) {
+        foreach ($allSales as $sale) {
             foreach ($sale->items as $item) {
                 $name = $item->menu_name_snapshot;
                 $topMenus[$name] = ($topMenus[$name] ?? 0) + $item->quantity;
@@ -42,9 +43,20 @@ class ReportController extends Controller
         }
         arsort($topMenus);
 
+        // Pagination untuk tabel ringkasan transaksi
+        $perPage = in_array((int) $request->input('per_page', 10), [10, 25, 50]) ? (int) $request->input('per_page', 10) : 10;
+
+        $sales = $query->orderByDesc('completed_at')
+            ->paginate($perPage);
+
+        $sales->appends(array_filter([
+            'period'   => $period !== 'all' ? $period : null,
+            'per_page' => $perPage,
+        ]));
+
         return view('reports.index', compact(
             'sales', 'period', 'totalRevenue', 'totalCount', 'avgRevenue',
-            'lowMaterials', 'topMenus'
+            'lowMaterials', 'topMenus', 'perPage'
         ));
     }
 
