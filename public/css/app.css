@@ -429,7 +429,7 @@ tbody tr:last-child td { border-bottom: 0; }
   margin-top: 20px;
   flex-wrap: wrap;
 }
-.pagination a, .pagination span {
+.pagination a, .pagination > span {
   padding: 8px 12px;
   border-radius: 8px;
   font-size: 12px;
@@ -441,8 +441,9 @@ tbody tr:last-child td { border-bottom: 0; }
   transition: background .15s;
 }
 .pagination a:hover       { background: var(--sand); }
-.pagination .active span  { background: var(--coffee); color: #fff; border-color: var(--coffee); }
-.pagination .disabled span { opacity: .4; cursor: not-allowed; }
+.pagination > span.active { background: var(--coffee); color: #fff; border-color: var(--coffee); }
+.pagination > span.disabled { opacity: .4; cursor: not-allowed; }
+.pagination > span.dots   { border: none; background: none; padding: 8px 4px; }
 
 /* ── Empty state ─────────────────────────────────────────────── */
 .empty-state {
