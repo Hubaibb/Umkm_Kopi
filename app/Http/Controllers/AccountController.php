@@ -13,7 +13,7 @@ class AccountController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::with('role');
+        $query = User::with('role'); //
 
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
