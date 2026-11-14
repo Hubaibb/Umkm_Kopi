@@ -1,10 +1,11 @@
 @if ($paginator->hasPages())
+@php $anchor = $anchor ?? ''; @endphp
 <nav class="pagination" aria-label="Navigasi halaman">
     {{-- Previous --}}
     @if ($paginator->onFirstPage())
         <span class="disabled">← Sebelumnya</span>
     @else
-        <a href="{{ $paginator->previousPageUrl() }}" rel="prev">← Sebelumnya</a>
+        <a href="{{ $paginator->previousPageUrl() . $anchor }}" rel="prev">← Sebelumnya</a>
     @endif
 
     {{-- Pages --}}
@@ -18,7 +19,7 @@
                 @if ($page == $paginator->currentPage())
                     <span class="active">{{ $page }}</span>
                 @else
-                    <a href="{{ $url }}">{{ $page }}</a>
+                    <a href="{{ $url . $anchor }}">{{ $page }}</a>
                 @endif
             @endforeach
         @endif
@@ -26,7 +27,7 @@
 
     {{-- Next --}}
     @if ($paginator->hasMorePages())
-        <a href="{{ $paginator->nextPageUrl() }}" rel="next">Berikutnya →</a>
+        <a href="{{ $paginator->nextPageUrl() . $anchor }}" rel="next">Berikutnya →</a>
     @else
         <span class="disabled">Berikutnya →</span>
     @endif
