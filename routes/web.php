@@ -41,6 +41,8 @@ Route::middleware(['auth', 'active.account'])->group(function () {
         Route::post('/', [InventoryController::class, 'store'])->name('store')->middleware('permission:inventory.manage');
         Route::put('/{material}', [InventoryController::class, 'update'])->name('update')->middleware('permission:inventory.manage');
         Route::delete('/{material}', [InventoryController::class, 'destroy'])->name('destroy')->middleware('permission:inventory.manage');
+        Route::post('/{material}/activate', [InventoryController::class, 'activateMaterial'])->name('activate')->middleware('permission:inventory.manage');
+        Route::delete('/{material}/force', [InventoryController::class, 'forceDestroy'])->name('forceDestroy')->middleware('permission:inventory.manage');
         Route::post('/adjust', [InventoryController::class, 'adjust'])->name('adjust')->middleware('permission:inventory.adjust');
     });
 

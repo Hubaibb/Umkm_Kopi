@@ -89,7 +89,7 @@
               <td>{{ $ri->qty_formatted }} {{ $ri->material->unit }}</td>
               <td>{{ $ri->material->stock_formatted }} {{ $ri->material->unit }}</td>
               <td style="color:{{ $ri->stock_after_one_serving < 0 ? 'var(--red)' : 'inherit' }}">
-                {{ number_format($ri->stock_after_one_serving, 3, ',', '.') }} {{ $ri->material->unit }}
+                {{ $ri->stock_after_one_serving_formatted }} {{ $ri->material->unit }}
               </td>
               @permission('bom.manage')
               <td style="display:flex;gap:6px">

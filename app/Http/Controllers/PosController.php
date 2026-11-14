@@ -26,11 +26,13 @@ class PosController extends Controller
     public function checkout(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'items'          => 'required|array|min:1',
-            'items.*.menu_id'  => 'required|integer|exists:menus,id',
-            'items.*.quantity' => 'required|integer|min:1',
-            'payment_method' => 'required|in:cash,qris',
-            'notes'          => 'nullable|string|max:500',
+            'items'                  => 'required|array|min:1',
+            'items.*.menu_id'        => 'required|integer|exists:menus,id',
+            'items.*.quantity'       => 'required|integer|min:1',
+            'items.*.size'           => 'nullable|in:medium,large',
+            'items.*.size_multiplier'=> 'nullable|numeric|in:1,1.5',
+            'payment_method'         => 'required|in:cash,qris',
+            'notes'                  => 'nullable|string|max:500',
         ]);
 
         try {
