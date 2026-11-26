@@ -12,16 +12,22 @@
 </head>
 <body>
 
+{{-- ── Mobile Sidebar Backdrop ──────────────────────────────── --}}
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
 {{-- ── Sidebar ──────────────────────────────────────────────── --}}
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
   <div class="brand">
     <div class="brand-icon">
       <span class="material-symbols-outlined">local_cafe</span>
     </div>
-    <div>
+    <div style="flex:1;min-width:0">
       <div class="brand-name">UMKM Kopi BPK RI</div>
       <div class="brand-sub">Koperasi BPK RI</div>
     </div>
+    <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Tutup menu">
+      <span class="material-symbols-outlined">close</span>
+    </button>
   </div>
 
   <div class="eyebrow" style="padding: 0 12px 8px">Workspace</div>
@@ -82,10 +88,15 @@
 
   {{-- Topbar --}}
   <header class="topbar">
-    <div>
-      <div class="eyebrow">Platform Operasional Terintegrasi</div>
-      <div style="font-size: 13px; font-weight: 800; margin-top: 3px; color: #241b16;">
-        Kedai Kopi · Koperasi BPK RI
+    <div class="topbar-left">
+      <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Buka menu navigasi" aria-expanded="false">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <div class="topbar-title-wrap">
+        <div class="eyebrow">Platform Operasional Terintegrasi</div>
+        <div style="font-size: 13px; font-weight: 800; margin-top: 3px; color: #241b16;">
+          Kedai Kopi · Koperasi BPK RI
+        </div>
       </div>
     </div>
 
@@ -161,7 +172,41 @@ const CSRF = document.querySelector('meta[name="csrf-token"]').content;
 function openModal(id) { document.getElementById(id).classList.add('show'); }
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') document.querySelectorAll('.modal-bg.show').forEach(m => m.classList.remove('show'));
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-bg.show').forEach(m => m.classList.remove('show'));
+    closeSidebar();
+  }
+});
+
+// Mobile sidebar drawer
+const sidebar = document.getElementById('sidebar');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebarClose = document.getElementById('sidebarClose');
+
+function openSidebar() {
+  if (!sidebar) return;
+  sidebar.classList.add('open');
+  if (sidebarBackdrop) sidebarBackdrop.classList.add('show');
+  if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'true');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSidebar() {
+  if (!sidebar) return;
+  sidebar.classList.remove('open');
+  if (sidebarBackdrop) sidebarBackdrop.classList.remove('show');
+  if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'false');
+  document.body.style.overflow = '';
+}
+
+if (sidebarToggle) sidebarToggle.addEventListener('click', () => {
+  sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+});
+if (sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
+if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', closeSidebar);
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 768) closeSidebar();
 });
 </script>
 
