@@ -6,18 +6,38 @@ use App\Models\Sale;
 use App\Models\Material;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
+use Carbon\Carbon;
 
 class ReportController extends Controller
 {
+    /**
+     * Apply date-range filters to a query.
+     */
+    private function applyFilters(Request $request, $query): array
+    {
+        $dateStart = $request->get('date_start');
+        $dateEnd   = $request->get('date_end');
+
+        if ($dateStart && $dateEnd) {
+            $from = Carbon::parse($dateStart)->startOfDay();
+            $to   = Carbon::parse($dateEnd)->endOfDay();
+            $query->whereBetween('completed_at', [$from, $to]);
+        } elseif ($dateStart) {
+            $from = Carbon::parse($dateStart)->startOfDay();
+            $query->where('completed_at', '>=', $from);
+        } elseif ($dateEnd) {
+            $to = Carbon::parse($dateEnd)->endOfDay();
+            $query->where('completed_at', '<=', $to);
+        }
+
+        return [$dateStart, $dateEnd];
+    }
+
     public function index(Request $request)
     {
-        $period = $request->get('period', 'all');
-
         $query = Sale::completed()->with(['items', 'cashier']);
 
-        if ($period === 'today') {
-            $query->today();
-        }
+        [$dateStart, $dateEnd] = $this->applyFilters($request, $query);
 
         // Clone query untuk stats sebelum paginate
         $allSales = (clone $query)->get();
@@ -50,25 +70,22 @@ class ReportController extends Controller
             ->paginate($perPage);
 
         $sales->appends(array_filter([
-            'period'   => $period !== 'all' ? $period : null,
-            'per_page' => $perPage,
+            'date_start' => $dateStart,
+            'date_end'   => $dateEnd,
+            'per_page'   => $perPage,
         ]));
 
         return view('reports.index', compact(
-            'sales', 'period', 'totalRevenue', 'totalCount', 'avgRevenue',
-            'lowMaterials', 'topMenus', 'perPage'
+            'sales', 'totalRevenue', 'totalCount', 'avgRevenue',
+            'lowMaterials', 'topMenus', 'perPage', 'dateStart', 'dateEnd'
         ));
     }
 
     public function export(Request $request)
     {
-        $period = $request->get('period', 'all');
-
         $query = Sale::completed()->with('items');
 
-        if ($period === 'today') {
-            $query->today();
-        }
+        [$dateStart, $dateEnd] = $this->applyFilters($request, $query);
 
         $sales = $query->orderByDesc('completed_at')->get();
 
@@ -93,7 +110,15 @@ class ReportController extends Controller
             ->map(fn($row) => implode(',', array_map(fn($v) => '"' . str_replace('"', '""', $v) . '"', $row)))
             ->implode("\n");
 
-        $filename = 'ringkasan-penjualan-' . now()->format('Ymd-His') . '.csv';
+        // Build descriptive filename
+        $suffix = match (true) {
+            $dateStart && $dateEnd => $dateStart . '_sd_' . $dateEnd,
+            (bool) $dateStart      => 'dari_' . $dateStart,
+            (bool) $dateEnd        => 'sd_' . $dateEnd,
+            default                => 'semua_' . now()->format('Ymd-His'),
+        };
+
+        $filename = 'ringkasan-penjualan-' . $suffix . '.csv';
 
         return Response::make("\xEF\xBB\xBF" . $csv, 200, [
             'Content-Type'        => 'text/csv; charset=UTF-8',

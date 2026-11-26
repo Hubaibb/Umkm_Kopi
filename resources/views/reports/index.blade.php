@@ -6,21 +6,6 @@
 <h1 class="title">Analitik Penjualan &amp; Operasional</h1>
 <p class="sub">Ringkasan dihitung dari transaksi berhasil di database. Semua angka real-time.</p>
 
-<div style="display:flex;gap:10px;flex-wrap:wrap;margin:18px 0;align-items:center">
-  <form method="GET" action="{{ route('reports.index') }}" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-    <select name="period" onchange="this.form.submit()" style="width:auto">
-      <option value="all" {{ $period === 'all' ? 'selected' : '' }}>Semua transaksi</option>
-      <option value="today" {{ $period === 'today' ? 'selected' : '' }}>Transaksi hari ini</option>
-    </select>
-  </form>
-  @permission('reports.export')
-    <a href="{{ route('reports.export', ['period' => $period]) }}" class="btn outline sm">
-      <span class="material-symbols-outlined" style="font-size:16px">download</span>
-      Unduh CSV
-    </a>
-  @endpermission
-</div>
-
 {{-- ── Stats ──────────────────────────────────────────────────── --}}
 <div class="grid stats">
   <div class="panel">
@@ -79,7 +64,7 @@
     <div class="sub">Status dihitung dari stok saat ini vs minimum</div>
     <div style="margin-top:16px">
       @forelse($lowMaterials as $mat)
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0e8e2">
+        <div class="stock-row">
           <div>
             <b style="font-size:12px">{{ $mat->name }}</b>
             <div class="sub">{{ $mat->stock_formatted }} {{ $mat->unit }} • min. {{ $mat->min_stock_formatted }} {{ $mat->unit }}</div>
@@ -98,29 +83,71 @@
 
 {{-- ── Ringkasan Transaksi ─────────────────────────────────────── --}}
 <div class="panel" id="ringkasan-transaksi" style="margin-top:16px">
-  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:12px">
-    <div style="font-weight:800;font-size:15px">Ringkasan Transaksi</div>
-    <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#666">
-      <span>Tampilkan</span>
+  <div style="font-weight:800;font-size:15px;margin-bottom:14px">Ringkasan Transaksi</div>
+
+  {{-- Filter + per-page row --}}
+  <div class="report-controls">
+    <form method="GET" action="{{ route('reports.index') }}#ringkasan-transaksi" id="filterForm" class="filter-form">
+      <div class="date-input-wrap">
+        <label for="date_start">Dari</label>
+        <input type="date" id="date_start" name="date_start" value="{{ $dateStart ?? '' }}" max="{{ date('Y-m-d') }}">
+      </div>
+      <span class="date-separator">–</span>
+      <div class="date-input-wrap">
+        <label for="date_end">Sampai</label>
+        <input type="date" id="date_end" name="date_end" value="{{ $dateEnd ?? '' }}" max="{{ date('Y-m-d') }}">
+      </div>
+      <button type="submit" class="btn sm filter-action-btn">
+        <span class="material-symbols-outlined" style="font-size:15px">filter_alt</span>
+        Terapkan
+      </button>
+    </form>
+
+    @permission('reports.export')
+      <a id="exportBtn" href="{{ route('reports.export', array_filter(['date_start' => $dateStart ?? null, 'date_end' => $dateEnd ?? null])) }}" class="btn outline sm filter-action-btn">
+        <span class="material-symbols-outlined" style="font-size:16px">download</span>
+        Unduh CSV
+      </a>
+    @endpermission
+
+    <div class="report-perpage">
+      <span class="perpage-label">Tampilkan</span>
       <form method="GET" action="{{ route('reports.index') }}#ringkasan-transaksi">
-        @if($period !== 'all')<input type="hidden" name="period" value="{{ $period }}">@endif
+        @if($dateStart)<input type="hidden" name="date_start" value="{{ $dateStart }}">@endif
+        @if($dateEnd)<input type="hidden" name="date_end" value="{{ $dateEnd }}">@endif
         <select name="per_page" class="perpage-select" onchange="this.form.submit()">
           @foreach([10, 25, 50] as $pp)
             <option value="{{ $pp }}" {{ $perPage == $pp ? 'selected' : '' }}>{{ $pp }}</option>
           @endforeach
         </select>
       </form>
-      <span>data</span>
+      <span class="perpage-label">data</span>
     </div>
   </div>
+
+  {{-- Active filter badge --}}
+  @if($dateStart || $dateEnd)
+    <div class="active-filter-badge" style="margin:10px 0">
+      <span class="material-symbols-outlined" style="font-size:14px">date_range</span>
+      @if($dateStart && $dateEnd)
+        {{ \Carbon\Carbon::parse($dateStart)->format('d M Y') }} — {{ \Carbon\Carbon::parse($dateEnd)->format('d M Y') }}
+      @elseif($dateStart)
+        Dari {{ \Carbon\Carbon::parse($dateStart)->format('d M Y') }}
+      @else
+        Sampai {{ \Carbon\Carbon::parse($dateEnd)->format('d M Y') }}
+      @endif
+      <a href="{{ route('reports.index') }}#ringkasan-transaksi" class="filter-clear" title="Hapus filter">&times;</a>
+    </div>
+  @endif
+
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
           <th>ID</th>
           <th>Waktu</th>
-          <th>Item</th>
-          <th>Kasir</th>
+          <th class="hide-mobile">Item</th>
+          <th class="hide-mobile">Kasir</th>
           <th>Pembayaran</th>
           <th>Total</th>
         </tr>
@@ -130,8 +157,8 @@
           <tr>
             <td><b>{{ $sale->transaction_code }}</b></td>
             <td>{{ $sale->completed_at->timezone('Asia/Jakarta')->format('d/m/Y H:i') }}</td>
-            <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis">{{ $sale->items_summary }}</td>
-            <td>{{ $sale->cashier?->name ?? '-' }}</td>
+            <td class="hide-mobile" style="max-width:260px;overflow:hidden;text-overflow:ellipsis">{{ $sale->items_summary }}</td>
+            <td class="hide-mobile">{{ $sale->cashier?->name ?? '-' }}</td>
             <td><span class="tag">{{ $sale->payment_label }}</span></td>
             <td><b>{{ $sale->total_formatted }}</b></td>
           </tr>
@@ -150,4 +177,28 @@
   </div>
   {{ $sales->links('vendor.pagination.custom', ['anchor' => '#ringkasan-transaksi']) }}
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const dateStart = document.getElementById('date_start');
+  const dateEnd   = document.getElementById('date_end');
+
+  function updateExportLink() {
+    const exportBtn = document.getElementById('exportBtn');
+    if (!exportBtn) return;
+
+    const params = new URLSearchParams();
+    if (dateStart.value) params.set('date_start', dateStart.value);
+    if (dateEnd.value) params.set('date_end', dateEnd.value);
+
+    const qs = params.toString();
+    exportBtn.href = '{{ route("reports.export") }}' + (qs ? '?' + qs : '');
+  }
+
+  if (dateStart) dateStart.addEventListener('change', updateExportLink);
+  if (dateEnd) dateEnd.addEventListener('change', updateExportLink);
+});
+</script>
+@endpush
 @endsection
