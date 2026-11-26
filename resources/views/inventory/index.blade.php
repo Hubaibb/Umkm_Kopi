@@ -33,7 +33,7 @@
 {{-- ── Daftar Persediaan ──────────────────────────────────────── --}}
 <div class="panel" id="daftar-persediaan">
   <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:15px">
-    <div style="font-weight:800;font-size:15px">Daftar Persediaan</div>
+    <div style="font-weight:800;font-size:15px">Daftar Bahan Baku Tersedia</div>
     
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto;">
       <form method="GET" action="{{ route('inventory.index') }}" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
