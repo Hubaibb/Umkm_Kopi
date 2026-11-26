@@ -76,6 +76,7 @@ Route::middleware(['auth', 'active.account'])->group(function () {
     // Riwayat Transaksi
     Route::prefix('transactions')->name('transactions.')->middleware('permission:transactions.view')->group(function () {
         Route::get('/', [TransactionController::class, 'index'])->name('index');
+        Route::get('/export', [TransactionController::class, 'export'])->name('export');
         Route::get('/{sale}', [TransactionController::class, 'show'])->name('show');
     });
 
