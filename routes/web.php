@@ -28,6 +28,12 @@ Route::get('/', function () {
 
 // ─── Protected routes ───────────────────────────────────────────────────────
 Route::middleware(['auth', 'active.account'])->group(function () {
+    
+    // Analitik Penjualan
+    Route::prefix('reports')->name('reports.')->middleware('permission:reports.view')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('/export', [ReportController::class, 'export'])->name('export')->middleware('permission:reports.export');
+    });
 
     // POS / Transaksi
     Route::prefix('pos')->name('pos.')->middleware('permission:pos.create')->group(function () {
@@ -66,12 +72,7 @@ Route::middleware(['auth', 'active.account'])->group(function () {
         // Kategori
         Route::post('/categories', [BomController::class, 'storeCategory'])->name('categories.store')->middleware('permission:menu.manage');
     });
-
-    // Analitik Penjualan
-    Route::prefix('reports')->name('reports.')->middleware('permission:reports.view')->group(function () {
-        Route::get('/', [ReportController::class, 'index'])->name('index');
-        Route::get('/export', [ReportController::class, 'export'])->name('export')->middleware('permission:reports.export');
-    });
+    
 
     // Riwayat Transaksi
     Route::prefix('transactions')->name('transactions.')->middleware('permission:transactions.view')->group(function () {

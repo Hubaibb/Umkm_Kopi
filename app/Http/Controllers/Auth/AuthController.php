@@ -58,13 +58,29 @@ class AuthController extends Controller
         // Regenerasi session untuk keamanan
         $request->session()->regenerate();
 
+        $roleSlug = strtolower($user->role?->slug ?? '');
+
         // Jika akun adalah barista, arahkan langsung ke Resep/BOM dan jangan ke menu POS
-        if ($user->hasRole('barista') || strtolower($user->role?->slug ?? '') === 'barista') {
+        if ($user->hasRole('barista') || $roleSlug === 'barista') {
             $intended = $request->session()->pull('url.intended');
             if ($intended && !str_contains($intended, '/pos')) {
                 return redirect()->to($intended);
             }
             return redirect()->route('bom.index');
+        }
+
+        // Jika akun adalah pengurus / admin / superadmin, arahkan langsung ke Analitik Penjualan dan jangan ke menu POS
+        if (
+            $user->hasRole('pengurus-koperasi') ||
+            $user->hasRole('admin') ||
+            $user->hasRole('superadmin') ||
+            str_contains($roleSlug, 'pengurus')
+        ) {
+            $intended = $request->session()->pull('url.intended');
+            if ($intended && !str_contains($intended, '/pos')) {
+                return redirect()->to($intended);
+            }
+            return redirect()->route('reports.index');
         }
 
         return redirect()->intended($user->defaultRoute());

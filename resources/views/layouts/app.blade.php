@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>@yield('title', 'UMKM Kopi BPK RI') — SuKopi</title>
+<title>@yield('title', 'UMKM Kopi BPK RI')</title>
 <meta name="description" content="Sistem Operasional Terintegrasi UMKM Kopi BPK RI — Koperasi BPK RI">
 <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
@@ -33,6 +33,13 @@
   <div class="eyebrow" style="padding: 0 12px 8px">Workspace</div>
 
   <nav>
+    @permission('reports.view')
+    <a href="{{ route('reports.index') }}"
+       class="navbtn {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+      <span class="material-symbols-outlined">monitoring</span>Analitik Penjualan
+    </a>
+    @endpermission
+    
     @permission('pos.create')
     <a href="{{ route('pos.index') }}"
        class="navbtn {{ request()->routeIs('pos.*') ? 'active' : '' }}">
@@ -51,13 +58,6 @@
     <a href="{{ route('bom.index') }}"
        class="navbtn {{ request()->routeIs('bom.*') ? 'active' : '' }}">
       <span class="material-symbols-outlined">menu_book</span>Resep 
-    </a>
-    @endpermission
-
-    @permission('reports.view')
-    <a href="{{ route('reports.index') }}"
-       class="navbtn {{ request()->routeIs('reports.*') ? 'active' : '' }}">
-      <span class="material-symbols-outlined">monitoring</span>Analitik Penjualan
     </a>
     @endpermission
 

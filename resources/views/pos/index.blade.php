@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'POS / Transaksi')
+@section('title', 'Transaksi')
 
 @section('content')
 <!--<div class="eyebrow">01 / Point of Sales</div>-->

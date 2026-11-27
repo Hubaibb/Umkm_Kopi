@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Auth;
 
 class CheckPermission
 {
@@ -17,7 +18,7 @@ class CheckPermission
         }
 
         if (!$user->is_active) {
-            auth()->logout();
+            Auth::logout();
             return redirect()->route('login')->withErrors(['login' => 'Akun Anda telah dinonaktifkan.']);
         }
 

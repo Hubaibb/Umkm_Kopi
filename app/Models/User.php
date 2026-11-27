@@ -68,20 +68,35 @@ class User extends Authenticatable
 
     public function defaultRoute(): string
     {
-        if ($this->hasRole('barista') || strtolower($this->role?->slug ?? '') === 'barista') {
+        $roleSlug = strtolower($this->role?->slug ?? '');
+
+        if ($this->hasRole('barista') || $roleSlug === 'barista') {
             return route('bom.index');
+        }
+
+        if ($this->hasRole('kasir') || $roleSlug === 'kasir') {
+            return route('pos.index');
+        }
+
+        if ($this->hasRole('pengelola') || $roleSlug === 'pengelola') {
+            return route('inventory.index');
+        }
+
+        if (
+            $this->hasRole('pengurus-koperasi') ||
+            $this->hasRole('admin') ||
+            $this->hasRole('superadmin') ||
+            str_contains($roleSlug, 'pengurus')
+        ) {
+            return route('reports.index');
+        }
+
+        if ($this->hasPermission('reports.view')) {
+            return route('reports.index');
         }
 
         if ($this->hasPermission('pos.create')) {
             return route('pos.index');
-        }
-
-        if ($this->hasRole('pengelola') || strtolower($this->role?->slug ?? '') === 'pengelola') {
-            return route('inventory.index');
-        }
-
-        if ($this->hasRole('pengurus-koperasi') || strtolower($this->role?->slug ?? '') === 'pengurus-koperasi') {
-            return route('reports.index');
         }
 
         if ($this->hasPermission('bom.view')) {
@@ -90,10 +105,6 @@ class User extends Authenticatable
 
         if ($this->hasPermission('inventory.view')) {
             return route('inventory.index');
-        }
-
-        if ($this->hasPermission('reports.view')) {
-            return route('reports.index');
         }
 
         return route('login');
